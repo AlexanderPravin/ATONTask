@@ -11,13 +11,14 @@ namespace WebApi.Controllers
     [ApiController]
     public class UserController(UserService service) : ControllerBase
     {
+        [AllowAnonymous]
         [HttpPost("Login")]
         public async Task<IActionResult> LoginUser(LoginDTO loginDto)
         {
             return Ok(await service.LoginUser(loginDto));
         }
         
-        [HttpPost("Create")]
+        [HttpPost("Create")]    
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateUser(CreateUserDTO userDto)
         {
@@ -65,8 +66,8 @@ namespace WebApi.Controllers
             var login = User.Claims.First(p => p.Type == ClaimTypes.Name).Value;
 
             var role = User.Claims.First(p => p.Type == ClaimTypes.Role).Value;
-
-            if (login != currentLogin || role != "admin")
+            
+            if (login != currentLogin && role != "admin")
                 return Forbid();
 
             await service.ChangeLogin(currentLogin, newLogin, login);

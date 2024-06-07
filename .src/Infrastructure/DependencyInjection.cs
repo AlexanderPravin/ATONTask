@@ -21,7 +21,7 @@
 
             // Adds the UserRepository to the service collection
             services.AddScoped<IRepository<User>, UserRepository>();
-
+            
             // Adds the UnitOfWork to the service collection
             services.AddScoped<UnitOfWork>();
 

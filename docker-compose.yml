@@ -1,0 +1,48 @@
+﻿services:
+  webapi:
+    image: webapi
+    build:
+      context: .
+      dockerfile: .src/WebApi/Dockerfile
+    networks:
+      - Database
+    depends_on: 
+      - pg4task
+    ports:
+      - 7059:80
+    environment:
+      ASPNETCORE_HTTP_PORTS: 80
+    
+  pg4task:
+    container_name: pg4task
+    image: postgres:latest
+    restart: always
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: pg4task
+        POSTGRES_DB: atonDB
+    networks: 
+      - Database
+    
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+        PGADMIN_DEFAULT_EMAIL: pgadmin@mail.ru
+        PGADMIN_DEFAULT_PASSWORD: pgadmin
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks: 
+        - Database
+    depends_on: 
+      - pg4task
+
+networks:
+  Database:
+    driver: bridge
+    
+volumes:
+  pgadmin:

@@ -1,6 +1,6 @@
 ﻿namespace Application.DTO;
 
-public struct ChangePasswordDTO
+public class ChangePasswordDTO
 {
     public string Login { get; set; }
     

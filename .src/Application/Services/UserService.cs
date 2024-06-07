@@ -26,7 +26,7 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
 
         user.CreatedBy = createdBy;
         
-        user.CreatedOn = DateTime.Now;
+        user.CreatedOn = DateTime.UtcNow;
 
         await unitOfWork.UserRepository.Add(user);
 
@@ -41,7 +41,7 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
 
         userToChange.ModifiedBy = modifiedBy;
         
-        userToChange.ModifiedOn = DateTime.Now;
+        userToChange.ModifiedOn = DateTime.UtcNow;
         
         unitOfWork.UserRepository.Update(userToChange);
         
@@ -56,7 +56,7 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
 
         userToChange.ModifiedBy = modifiedBy;
         
-        userToChange.ModifiedOn = DateTime.Now;
+        userToChange.ModifiedOn = DateTime.UtcNow;
 
         unitOfWork.UserRepository.Update(userToChange);
         
@@ -79,38 +79,42 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
         await unitOfWork.SaveChanges();
     }
 
-    public async Task<IEnumerable<User>> GetAllActiveUsers()
+    public async Task<IEnumerable<ResponseUserDTO>> GetAllActiveUsers()
     {
         var activeUsers = await unitOfWork.UserRepository.GetCollectionBy(p => p.RevokedOn != null);
 
-        return activeUsers.OrderBy(p => p.CreatedOn);
+        return activeUsers.OrderBy(p => p.CreatedOn).Adapt<IEnumerable<ResponseUserDTO>>();
     }
 
-    public async Task<User> GetUserByLogin(string login)
+    public async Task<ResponseUserDTO> GetUserByLogin(string login)
     {
         var user = await unitOfWork.UserRepository.GetBy(p => p.Login == login)
                    ?? throw new NullEntityException($"Can`t find user with login: {login}");
 
-        return user;
+        return user.Adapt<ResponseUserDTO>();
     }
 
-    public async Task<User> GetSelfData(string login, string password)
+    public async Task<SelfUserDTO> GetSelfData(string login, string password)
     {
         var user = await unitOfWork.UserRepository.GetBy(p =>
                        p.Login == login &&
                        p.Password == password) 
                    ?? throw new NullEntityException("Can`t find user with given login and password");
 
-        return user;
+        var dto = user.Adapt<SelfUserDTO>();
+
+        dto.IsRevoked = user.RevokedOn is null;
+
+        return dto;
     }
 
-    public async Task<ICollection<User>> GetUsersByAge(int minAge)
+    public async Task<IEnumerable<ResponseUserDTO>> GetUsersByAge(int minAge)
     {
         var users = await unitOfWork.UserRepository.GetCollectionBy(p =>
             p.Birthday != null && 
-            DateTime.Now.Year - p.Birthday.Value.Year > minAge);
+            DateTime.UtcNow.Year - p.Birthday.Value.Year > minAge);
 
-        return users;
+        return users.Adapt<IEnumerable<ResponseUserDTO>>();
     }
 
     public async Task DeleteUser(string login, bool isSoft, string revokedBy)
@@ -120,7 +124,7 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
 
         if (isSoft)
         {
-            user.RevokedOn = DateTime.Now;
+            user.RevokedOn = DateTime.UtcNow;
             user.RevokedBy = revokedBy;
             
             unitOfWork.UserRepository.Update(user);

@@ -1,4 +1,6 @@
-﻿namespace Infrastructure.Data;
+﻿using Domain.Enum;
+
+namespace Infrastructure.Data;
 
 public class Context(DbContextOptions<Context> options) : DbContext(options)
 {

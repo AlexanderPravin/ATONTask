@@ -1,16 +1,16 @@
 ﻿namespace Application.DTO;
 
-public struct CreateUserDTO
+public class CreateUserDTO
 {
-    public string Login;
+    public string Login { get; set; }
 
-    public string Password;
+    public string Password { get; set; }
 
-    public string Name;
+    public string Name { get; set; }
 
-    public Gender Gender;
+    public Gender Gender { get; set; }
 
-    public DateTime? BirthDay;
+    public DateTime? BirthDay { get; set; }
 
-    public bool IsAdmin;
+    public bool IsAdmin { get; set; }
 }
