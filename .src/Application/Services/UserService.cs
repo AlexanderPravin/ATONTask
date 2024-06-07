@@ -1,7 +1,9 @@
 ﻿
+using Application.Validators;
+
 namespace Application.Services;
 
-public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
+public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper, UserValidator userValidator)
 {
     public async Task<string> LoginUser(LoginDTO loginDto)
     {
@@ -28,6 +30,11 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
         
         user.CreatedOn = DateTime.UtcNow;
 
+        var validationResult = await userValidator.ValidateAsync(user);
+
+        if (!validationResult.IsValid)
+            throw new ArgumentException(String.Join(", ", validationResult.Errors.Select(p => p.ErrorMessage)));
+        
         await unitOfWork.UserRepository.Add(user);
 
         await unitOfWork.SaveChanges();
@@ -42,6 +49,11 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
         userToChange.ModifiedBy = modifiedBy;
         
         userToChange.ModifiedOn = DateTime.UtcNow;
+        
+        var validationResult = await userValidator.ValidateAsync(userToChange);
+
+        if (!validationResult.IsValid)
+            throw new ArgumentException(String.Join(", ", validationResult.Errors.Select(p => p.ErrorMessage)));
         
         unitOfWork.UserRepository.Update(userToChange);
         
@@ -58,6 +70,11 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
         
         userToChange.ModifiedOn = DateTime.UtcNow;
 
+        var validationResult = await userValidator.ValidateAsync(userToChange);
+
+        if (!validationResult.IsValid)
+            throw new ArgumentException(String.Join(", ", validationResult.Errors.Select(p => p.ErrorMessage)));
+        
         unitOfWork.UserRepository.Update(userToChange);
         
         await unitOfWork.SaveChanges();
@@ -74,6 +91,11 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
 
         userToChange.Login = newLogin;
         
+        var validationResult = await userValidator.ValidateAsync(userToChange);
+
+        if (!validationResult.IsValid)
+            throw new ArgumentException(String.Join(", ", validationResult.Errors.Select(p => p.ErrorMessage)));
+        
         unitOfWork.UserRepository.Update(userToChange);
 
         await unitOfWork.SaveChanges();
@@ -81,7 +103,7 @@ public class UserService(UnitOfWork unitOfWork, JwtTokenHelper tokenHelper)
 
     public async Task<IEnumerable<ResponseUserDTO>> GetAllActiveUsers()
     {
-        var activeUsers = await unitOfWork.UserRepository.GetCollectionBy(p => p.RevokedOn != null);
+        var activeUsers = await unitOfWork.UserRepository.GetCollectionBy(p => p.RevokedOn == null);
 
         return activeUsers.OrderBy(p => p.CreatedOn).Adapt<IEnumerable<ResponseUserDTO>>();
     }
