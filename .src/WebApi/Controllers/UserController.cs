@@ -4,11 +4,13 @@ using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.ExceptionFilters;
 
 namespace WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [UserExceptionFilter]
     public class UserController(UserService service) : ControllerBase
     {
         [AllowAnonymous]
