@@ -7,7 +7,9 @@
     networks:
       - Database
     depends_on: 
-      - pg4task
+      pg4task:
+          condition: service_healthy
+          restart: true
     ports:
       - 7059:80
     environment:
@@ -17,6 +19,11 @@
     container_name: pg4task
     image: postgres:latest
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
     environment:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: pg4task
