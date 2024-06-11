@@ -37,7 +37,7 @@ namespace WebApi.Controllers
 
             var role = User.Claims.First(p => p.Type == ClaimTypes.Role).Value;
             
-            if (login != userDto.Login || role != "admin")
+            if (login != userDto.Login && role != "admin")
                 return Forbid();
 
             await service.UpdateData(userDto, User.Claims.First(p => p.Type == ClaimTypes.Name).Value);
@@ -53,7 +53,7 @@ namespace WebApi.Controllers
 
             var role = User.Claims.First(p => p.Type == ClaimTypes.Role).Value;
 
-            if (login != passwordDto.Login || role != "admin")
+            if (login != passwordDto.Login && role != "admin")
                 return Forbid();
 
             await service.ChangePassword(passwordDto, login);
@@ -91,14 +91,14 @@ namespace WebApi.Controllers
             return Ok(await service.GetUserByLogin(login));
         }
 
-        [HttpGet("Self")]
+        [HttpGet("Self/{login}/{password}")]
         [Authorize]
-        public async Task<IActionResult> GetSelfData(LoginDTO loginDto)
+        public async Task<IActionResult> GetSelfData(string login, string password)
         {
-            if (loginDto.Login != User.Claims.First(p => p.Type == ClaimTypes.Name).Value)
+            if (login != User.Claims.First(p => p.Type == ClaimTypes.Name).Value)
                 return Forbid();
             
-            return Ok(await service.GetSelfData(loginDto.Login, loginDto.Password));
+            return Ok(await service.GetSelfData(login, password));
         }
 
         [HttpGet("Age")]
